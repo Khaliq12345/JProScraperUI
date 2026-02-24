@@ -121,12 +121,24 @@ def get_products(lender: dict) -> set[str]:
     return products
 
 
+def get_executions(lender: dict) -> set[str]:
+    products = set()
+    for cb in lender.get("creditBoxes", []):
+        for lpt in cb.get("executionTypes", []):
+            products.add(lpt.lower())
+    return products
+
+
 # ── Derived option lists ─────────────────────────────────────────────────────────
 
 ALL_STATES: list[str] = sorted({sc for l in LENDERS for sc in get_states(l)})
 
 ALL_PRODUCTS: list[str] = sorted(
     {p for l in LENDERS for p in get_products(l) if len(p) > 3}
+)
+
+ALL_EXECUTIONS: list[str] = sorted(
+    {p for l in LENDERS for p in get_executions(l) if len(p) > 3}
 )
 
 
@@ -160,6 +172,7 @@ def filter_lenders(
     search: str = "",
     state: str = "All States",
     product: str = "All Products",
+    execution: str = "All Executions",
     min_loan: float | None = None,
     max_loan: float | None = None,
     min_credit: float | None = None,
@@ -184,6 +197,10 @@ def filter_lenders(
 
         if product and product != "All Products":
             if product.lower() not in get_products(lender):
+                continue
+
+        if execution and execution != "All Executions":
+            if execution.lower() not in get_executions(lender):
                 continue
 
         has_numerics = any(v is not None for v in (min_loan, max_loan, min_credit))

@@ -5,7 +5,7 @@ filters.py — filter bar widget and filter state container
 from dataclasses import dataclass, field
 from nicegui import ui
 
-from data import ALL_STATES, ALL_PRODUCTS
+from data import ALL_STATES, ALL_PRODUCTS, ALL_EXECUTIONS
 
 
 # ── Filter state ────────────────────────────────────────────────────────────────
@@ -16,6 +16,7 @@ class FilterState:
     search: str = ""
     state: str = "All States"
     product: str = "All Products"
+    execution: str = "All Executions"
     min_loan: float | None = field(default=None)
     max_loan: float | None = field(default=None)
     min_credit: float | None = field(default=None)
@@ -25,6 +26,7 @@ class FilterState:
             "search": self.search,
             "state": self.state,
             "product": self.product,
+            "execution": self.execution,
             "min_loan": self.min_loan,
             "max_loan": self.max_loan,
             "min_credit": self.min_credit,
@@ -52,6 +54,12 @@ def build_filter_bar(state: FilterState, on_change: callable) -> None:
         product_sel = ui.select(
             ["All Products"] + ALL_PRODUCTS, value="All Products", label="Product Type"
         ).style("width:200px")
+        execution_sel = ui.select(
+            ["All Execution"] + ALL_EXECUTIONS,
+            value="All Execution",
+            label="Execution Type",
+        ).style("width:200px")
+
         min_loan = ui.number(label="Min Loan ($)", format="%.0f", min=0).style(
             "width:140px"
         )
@@ -84,6 +92,10 @@ def build_filter_bar(state: FilterState, on_change: callable) -> None:
     product_sel.on(
         "update:model-value",
         lambda _: _update("product", product_sel.value or "All Products"),
+    )
+    execution_sel.on(
+        "update:model-value",
+        lambda _: _update("execution", execution_sel.value or "All Executions"),
     )
     min_loan.on(
         "update:model-value", lambda _: _update("min_loan", _safe_float(min_loan.value))
