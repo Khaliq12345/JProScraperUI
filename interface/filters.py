@@ -4,8 +4,9 @@ filters.py — filter bar widget and filter state container
 
 from dataclasses import dataclass, field
 from nicegui import ui
+from typing import Callable
 
-from data import ALL_STATES, ALL_PRODUCTS, ALL_EXECUTIONS
+from data import ALL_PROPERTY, ALL_STATES, ALL_PRODUCTS, ALL_EXECUTIONS, ALL_PROPERTY
 
 
 # ── Filter state ────────────────────────────────────────────────────────────────
@@ -17,6 +18,7 @@ class FilterState:
     state: str = "All States"
     product: str = "All Products"
     execution: str = "All Executions"
+    propertyType: str = "All Property Types"
     min_loan: float | None = field(default=None)
     max_loan: float | None = field(default=None)
     min_credit: float | None = field(default=None)
@@ -27,6 +29,7 @@ class FilterState:
             "state": self.state,
             "product": self.product,
             "execution": self.execution,
+            "propertyType": self.propertyType,
             "min_loan": self.min_loan,
             "max_loan": self.max_loan,
             "min_credit": self.min_credit,
@@ -36,7 +39,7 @@ class FilterState:
 # ── Filter bar ──────────────────────────────────────────────────────────────────
 
 
-def build_filter_bar(state: FilterState, on_change: callable) -> None:
+def build_filter_bar(state: FilterState, on_change: Callable) -> None:
     """Render the full filter bar and wire up all change handlers."""
 
     with (
@@ -48,16 +51,25 @@ def build_filter_bar(state: FilterState, on_change: callable) -> None:
             placeholder="Search lenders, counties, products…",
             on_change=lambda _: _update("search", search.value or ""),
         ).style("width:280px")
+
         state_sel = ui.select(
             ["All States"] + ALL_STATES, value="All States", label="State"
         ).style("width:160px")
+
         product_sel = ui.select(
             ["All Products"] + ALL_PRODUCTS, value="All Products", label="Product Type"
         ).style("width:200px")
+
         execution_sel = ui.select(
-            ["All Execution"] + ALL_EXECUTIONS,
-            value="All Execution",
+            ["All Executions"] + ALL_EXECUTIONS,
+            value="All Executions",
             label="Execution Type",
+        ).style("width:200px")
+
+        property_sel = ui.select(
+            ["All Property Types"] + ALL_PROPERTY,
+            value="All Property Types",
+            label="Property Type",
         ).style("width:200px")
 
         min_loan = ui.number(label="Min Loan ($)", format="%.0f", min=0).style(
@@ -82,26 +94,36 @@ def build_filter_bar(state: FilterState, on_change: callable) -> None:
         except (TypeError, ValueError):
             return None
 
-    # Always read from the component's .value after the event fires —
-    # avoids dealing with GenericEventArguments payload differences.
-    # search.on("input", lambda _: _update("search", search.value or ""))
+    # ── Events ────────────────────────────────────────────────────────────────
+
     state_sel.on(
         "update:model-value",
         lambda _: _update("state", state_sel.value or "All States"),
     )
+
     product_sel.on(
         "update:model-value",
         lambda _: _update("product", product_sel.value or "All Products"),
     )
+
     execution_sel.on(
         "update:model-value",
         lambda _: _update("execution", execution_sel.value or "All Executions"),
     )
-    min_loan.on(
-        "update:model-value", lambda _: _update("min_loan", _safe_float(min_loan.value))
+
+    property_sel.on(
+        "update:model-value",
+        lambda _: _update("propertyType", property_sel.value or "All Property Types"),
     )
+
+    min_loan.on(
+        "update:model-value",
+        lambda _: _update("min_loan", _safe_float(min_loan.value)),
+    )
+
     max_loan.on(
-        "update:model-value", lambda _: _update("max_loan", _safe_float(max_loan.value))
+        "update:model-value",
+        lambda _: _update("max_loan", _safe_float(max_loan.value)),
     )
     credit.on(
         "update:model-value", lambda _: _update("min_credit", _safe_float(credit.value))

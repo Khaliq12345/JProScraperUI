@@ -32,8 +32,11 @@ DATA_PATH = Path(__file__).parent / "lenders.json"
 
 
 def load_lenders() -> list[dict[str, Any]]:
+    all_records = []
     with open(DATA_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)[0]
+        for r in json.load(f):
+            all_records.extend(r)
+        return all_records
 
 
 # ── Normalization ────────────────────────────────────────────────────────────────
@@ -129,6 +132,14 @@ def get_executions(lender: dict) -> set[str]:
     return products
 
 
+def get_properties(lender: dict) -> set[str]:
+    products = set()
+    for cb in lender.get("creditBoxes", []):
+        for lpt in cb.get("propertyTypes", []):
+            products.add(lpt.lower())
+    return products
+
+
 # ── Derived option lists ─────────────────────────────────────────────────────────
 
 ALL_STATES: list[str] = sorted({sc for l in LENDERS for sc in get_states(l)})
@@ -141,6 +152,9 @@ ALL_EXECUTIONS: list[str] = sorted(
     {p for l in LENDERS for p in get_executions(l) if len(p) > 3}
 )
 
+ALL_PROPERTY: list[str] = sorted(
+    {p for l in LENDERS for p in get_properties(l) if len(p) > 3}
+)
 
 # ── Filtering ────────────────────────────────────────────────────────────────────
 
@@ -173,6 +187,7 @@ def filter_lenders(
     state: str = "All States",
     product: str = "All Products",
     execution: str = "All Executions",
+    propertyType: str = "All Property Types",
     min_loan: float | None = None,
     max_loan: float | None = None,
     min_credit: float | None = None,
@@ -201,6 +216,10 @@ def filter_lenders(
 
         if execution and execution != "All Executions":
             if execution.lower() not in get_executions(lender):
+                continue
+
+        if propertyType and propertyType != "All Property Types":
+            if propertyType.lower() not in get_properties(lender):
                 continue
 
         has_numerics = any(v is not None for v in (min_loan, max_loan, min_credit))
