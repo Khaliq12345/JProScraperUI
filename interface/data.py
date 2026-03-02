@@ -197,7 +197,8 @@ def filter_lenders(
 
     for lender in lenders:
         if q:
-            haystack = lender.get("lenderName", "").lower()
+            haystack = lender.get("lenderName", "")
+            haystack = haystack.lower() if haystack else ""
             haystack += " " + (lender.get("contact") or {}).get("email", "").lower()
             haystack += " " + " ".join(get_counties(lender))
             haystack += " " + " ".join(get_products(lender))

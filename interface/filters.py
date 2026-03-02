@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from nicegui import ui
 from typing import Callable
 
-from data import ALL_PROPERTY, ALL_STATES, ALL_PRODUCTS, ALL_EXECUTIONS, ALL_PROPERTY
+from data import ALL_PROPERTY, ALL_STATES, ALL_PRODUCTS, ALL_EXECUTIONS
 
 
 # ── Filter state ────────────────────────────────────────────────────────────────
